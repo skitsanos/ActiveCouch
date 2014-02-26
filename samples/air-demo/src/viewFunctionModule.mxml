@@ -1,0 +1,139 @@
+<?xml version="1.0"?>
+<s:Module xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" implements="IModuleInterface">
+    <fx:Script>
+        import com.skitsanos.api.CouchDb;
+        import com.skitsanos.api.CouchDbEvent;
+
+        import spark.components.TextArea;
+
+        private var host:String;
+        private var port:Number;
+        private var user:String;
+        private var password:String;
+        private var result:TextArea;
+
+        public function getModuleTitle():String {
+            return "View Function";
+        }
+
+        public function setHost(host:String):void {
+            this.host = host;
+        }
+
+        public function setPort(port:String):void {
+            this.port = new Number(port);
+        }
+
+        public function setUser(user:String):void {
+            this.user = user;
+        }
+
+        public function setPassword(password:String):void {
+            this.password = password;
+        }
+
+        private function setViewFunction(event:Event):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.VIEW_SET, function (event:CouchDbEvent):void {
+                result.appendText("\nSet View Function - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.setViewFunction(txtDb.text, txtDesignId.text, txtViewFunctionName.text, txtMapContent.text, txtReduceContent.text);
+        }
+
+        private function viewFunctionExists(event:Event):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.VIEW_EXIST, function (event:CouchDbEvent):void {
+                result.appendText("\nView Function Exists? - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.existsViewFunction(txtDb.text, txtDesignId.text, txtViewFunctionName.text);
+        }
+
+        private function deleteViewFunction(event:Event):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.DELETE_VIEW, function (event:CouchDbEvent):void {
+                result.appendText("\nDelete View Function - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.deleteViewFunction(txtDb.text, txtDesignId.text, txtViewFunctionName.text);
+        }
+
+        public function setResultOutput(result:TextArea):void {
+            this.result = result;
+        }
+
+        private function getDesignViewFunction(event:MouseEvent):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.VIEW_GET, function (event:CouchDbEvent):void {
+                result.appendText("\nGet Design View Function - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.getDesignViewAsJson(txtDb.text, txtDesignId.text, txtViewFunctionName.text);
+        }
+
+        private function getMapFunction(event:MouseEvent):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.VIEW_GET_MAP, function (event:CouchDbEvent):void {
+                result.appendText("\nGet View Map Function - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.getMapFunction(txtDb.text, txtDesignId.text, txtViewFunctionName.text);
+
+        }
+        private function getReduceFunction(event:MouseEvent):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.VIEW_GET_REDUCE, function (event:CouchDbEvent):void {
+                result.appendText("\nGet View Map Function - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.getReduceFunction(txtDb.text, txtDesignId.text, txtViewFunctionName.text);
+
+        }
+
+    </fx:Script>
+
+
+    <s:BorderContainer width="100%" height="100%" borderVisible="false">
+
+
+        <s:Scroller left="0" right="0" top="0" bottom="0">
+        <s:Group width="100%" height="100%">
+            <s:layout>
+                <s:VerticalLayout/>
+            </s:layout>
+
+        <s:Form>
+            <s:FormItem label="Database">
+                <s:TextInput id="txtDb" width="100%" text=""/>
+            </s:FormItem>
+            <s:FormItem label="Design ID">
+                <s:TextInput id="txtDesignId" width="100%" text=""/>
+            </s:FormItem>
+            <s:FormItem label="View Function Name">
+                <s:TextInput id="txtViewFunctionName" width="100%" text=""/>
+            </s:FormItem>
+            <s:FormItem label="Map Content">
+                <s:TextArea id="txtMapContent" width="100%" text=""/>
+            </s:FormItem>
+            <s:FormItem label="Reduce Content">
+                <s:TextArea id="txtReduceContent" width="100%" text=""/>
+            </s:FormItem>
+        </s:Form>
+
+        <s:HGroup>
+            <s:Button id="btnViewFunctionExists" label="View Function Exists?"
+                      click="viewFunctionExists(event)"/>
+            <s:Button id="btnSetViewFunction" label="Set View Function"
+                      click="setViewFunction(event)"/>
+            <s:Button id="btnGetMapFunction" label="Get Map Function"
+                      click="getMapFunction(event)"/>
+            <s:Button id="btnGetReduceFunction" label="Get Reduce Function"
+                      click="getReduceFunction(event)"/>
+            <s:Button id="btnGetDesignViewFunction" label="Get Design View Function" click="getDesignViewFunction(event)"/>
+
+            <s:Button id="btnDeleteViewFunction" label="Delete View Function"
+                      click="deleteViewFunction(event)"/>
+
+        </s:HGroup>
+        </s:Group>
+        </s:Scroller>
+
+    </s:BorderContainer>
+
+</s:Module>

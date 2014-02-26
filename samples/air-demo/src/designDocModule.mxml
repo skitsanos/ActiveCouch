@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<s:Module xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" implements="IModuleInterface">
+    <fx:Script>
+        import com.skitsanos.api.CouchDb;
+        import com.skitsanos.api.CouchDbEvent;
+
+        import spark.components.TextArea;
+
+        private var host:String;
+        private var port:Number;
+        private var user:String;
+        private var password:String;
+        private var result:TextArea;
+
+        public function getModuleTitle():String {
+            return "Design Document";
+        }
+
+        public function setHost(host:String):void {
+            this.host = host;
+        }
+
+        public function setPort(port:String):void {
+            this.port = new Number(port);
+        }
+
+        public function setUser(user:String):void {
+            this.user = user;
+        }
+
+        public function setPassword(password:String):void {
+            this.password = password;
+        }
+
+        private function createDesignDocument(event:Event):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.DESIGN_CREATE, function (event:CouchDbEvent):void {
+                result.appendText("\Create Design Document - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.createDesignDocument(txtDb.text, txtDesignId.text, txtViewName.text, txtMap.text);
+        }
+
+        private function createTemporaryView(event:Event):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.VIEW_TEMP_CREATE, function (event:CouchDbEvent):void {
+                result.appendText("\Create Temporary View - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.createTemporaryView(txtDb.text, txtMap.text, txtReduce.text, txtStartKey.text, txtEndKey.text);
+        }
+
+        private function createView(event:Event):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.VIEW_CREATE, function (event:CouchDbEvent):void {
+                result.appendText("\Create View - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.createView(txtDb.text, txtViewName.text, txtMap.text, txtReduce.text, txtStartKey.text, txtEndKey.text);
+        }
+
+        public function setResultOutput(result:TextArea):void {
+            this.result = result;
+        }
+
+        private function getAllDesignDocuments(event:MouseEvent):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.ALL_DESIGN_DOCS, function (event:CouchDbEvent):void {
+                result.appendText("\nAll Design Documents - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.getAllDesignDocuments(txtDb.text);
+        }</fx:Script>
+
+    <s:BorderContainer width="100%" height="100%" borderVisible="false">
+        <s:Scroller left="0" right="0" top="0" bottom="0">
+        <s:Group width="100%" height="100%">
+        <s:layout>
+            <s:VerticalLayout/>
+        </s:layout>
+        <s:Form>
+
+            <s:FormItem label="Database">
+                <s:TextInput id="txtDb" width="100%" text=""/>
+            </s:FormItem>
+            <s:FormItem label="Design ID">
+                <s:TextInput id="txtDesignId" width="100%" text=""/>
+            </s:FormItem>
+            <s:FormItem label="View Name">
+                <s:TextInput id="txtViewName" width="100%" text=""/>
+            </s:FormItem>
+            <s:FormItem label="Map">
+                <s:TextArea id="txtMap" width="100%" text=""/>
+            </s:FormItem>
+            <s:FormItem label="Reduce">
+                <s:TextArea id="txtReduce" width="100%" text=""/>
+            </s:FormItem>
+            <s:FormItem label="Start Key">
+                <s:TextInput id="txtStartKey" width="100%" text=""/>
+            </s:FormItem>
+            <s:FormItem label="End Key">
+                <s:TextInput id="txtEndKey" width="100%" text=""/>
+            </s:FormItem>
+        </s:Form>
+
+        <s:HGroup>
+            <s:Button id="btnGetAllDesignDocument" label="Get All Design Documents" click="getAllDesignDocuments(event)"/>
+            <s:Button id="btnCreateDesignDocument" label="Create Design Document"
+                      click="createDesignDocument(event)"/>
+            <s:Button id="btnCreateTemporaryView" label="Create Temporary View"
+                      click="createTemporaryView(event)"/>
+            <s:Button id="btnCreateView" label="Create View"
+                      click="createView(event)"/>
+        </s:HGroup>
+        </s:Group>
+        </s:Scroller>
+
+    </s:BorderContainer>
+</s:Module>

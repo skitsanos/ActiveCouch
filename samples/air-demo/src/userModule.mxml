@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<s:Module xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" implements="IModuleInterface">
+    <fx:Script>
+
+        import com.skitsanos.api.CouchDbUser;
+        import com.skitsanos.api.CouchDbEvent;
+        import spark.components.TextArea;
+
+        private var host:String;
+        private var port:Number;
+        private var user:String;
+        private var password:String;
+        private var result:TextArea;
+
+        public function getModuleTitle():String {
+            return "User Management";
+        }
+
+        public function setHost(host:String):void {
+            this.host = host;
+        }
+
+        public function setPort(port:String):void {
+            this.port = new Number(port);
+        }
+
+        public function setUser(user:String):void {
+            this.user = user;
+        }
+
+        public function setPassword(password:String):void {
+            this.password = password;
+        }
+
+        private function addUser(event:Event):void {
+            var api:CouchDbUser = new CouchDbUser(host, port, user, password);
+            api.addEventListener(CouchDbEvent.USER_ADD, function (event:CouchDbEvent):void {
+                result.appendText("\nAdd User - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+
+            api.addUser(txtUserId.text, txtPassword.text, txtRoles.text.split(","));
+        }
+
+        private function updateUser(event:Event):void {
+            var api:CouchDbUser = new CouchDbUser(host, port, user, password);
+            api.addEventListener(CouchDbEvent.USER_UPDATE, function (event:CouchDbEvent):void {
+                result.appendText("\nUpdate User - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+
+            api.updateUser(txtUserId.text, txtPassword.text, txtRoles.text.split(","));
+        }
+
+        private function userExists(event:Event):void {
+            var api:CouchDbUser = new CouchDbUser(host, port, user, password);
+            api.addEventListener(CouchDbEvent.USER_EXISTS, function (event:CouchDbEvent):void {
+                result.appendText("\nUser Exists - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+
+            api.isExists(txtUserId.text);
+        }
+
+        private function deleteUser(event:Event):void {
+            var api:CouchDbUser = new CouchDbUser(host, port, user, password);
+            api.addEventListener(CouchDbEvent.USER_DELETE, function (event:CouchDbEvent):void {
+                result.appendText("\nDelete User - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+
+            api.deleteUser(txtUserId.text);
+        }
+
+        public function setResultOutput(result:TextArea):void {
+            this.result = result;
+        }
+
+        private function getUser(event:MouseEvent):void {
+            var api:CouchDbUser = new CouchDbUser(host, port, user, password);
+            api.addEventListener(CouchDbEvent.USER_GET, function (event:CouchDbEvent):void {
+                result.appendText("\nGet User - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+
+            api.getUser(txtUserId.text);
+        }
+    </fx:Script>
+
+    <s:BorderContainer width="100%" height="100%" borderVisible="false">
+        <s:Scroller left="0" right="0" top="0" bottom="0">
+            <s:Group width="100%" height="100%">
+                <s:layout>
+                    <s:VerticalLayout/>
+                </s:layout>
+                <s:Form>
+
+                    <s:FormItem label="User ID">
+                        <s:TextInput id="txtUserId" width="100%" text=""/>
+                    </s:FormItem>
+                    <s:FormItem label="Password">
+                        <s:TextInput id="txtPassword" width="100%" text=""/>
+                    </s:FormItem>
+                    <s:FormItem label="Roles (comma separated)">
+                        <s:TextInput id="txtRoles" width="100%" text=""/>
+                    </s:FormItem>
+                </s:Form>
+
+                <s:HGroup>
+                    <s:Button id="btnUserExists" label="User Exists?"
+                              click="userExists(event)"/>
+                    <s:Button id="btnGetUserFunction" label="Get User" click="getUser(event)"/>
+                    <s:Button id="btnAddUser" label="Add User"
+                              click="addUser(event)"/>
+                    <s:Button id="btnUpdateUser" label="Update User"
+                              click="updateUser(event)"/>
+
+                    <s:Button id="btnDeleteUser" label="Delete User"
+                              click="deleteUser(event)"/>
+                </s:HGroup>
+            </s:Group>
+        </s:Scroller>
+    </s:BorderContainer>
+</s:Module>

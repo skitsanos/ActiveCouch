@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" title="ActionCouch Demo">
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.utils.StringUtil;			
+			import com.skitsanos.api.CouchDb;
+			import com.skitsanos.api.CouchDbEvent;
+			import com.skitsanos.api.StringUtils;
+			
+			import mx.events.FlexEvent;
+			public var api1:CouchDb;
+			public var api2:CouchDb;
+			
+			public function getVersion(event:Event, panel:int) :void {
+				if (1== panel) {
+					api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+					api1.addEventListener(CouchDbEvent.COUCHDB_VERSION, versionEventHandler);
+					api1.version(); 
+				} else {
+//					api2 = new CouchDb(txtHostName2.text, new Number(txtPort2.text), txtUserName2.text, txtPassword2.text);
+//					api2.addEventListener(CouchDbEvent.COUCHDB_VERSION, versionEventHandler);
+//					api2.version(); 
+				}
+				
+			}
+			
+			public function versionEventHandler(event:CouchDbEvent):void {
+				var host:String = event.currentTarget.host;
+				if (StringUtils.contains(txtHostName.text, host))
+					txtResult.text += "\n Couchdb Version - "+event.result;
+//				else
+//					txtResult2.text += "\n Couchdb Version - "+event.result;
+			}
+			
+			public function getActiveTasks(event:Event, panel:int) :void {
+				if (1== panel) {
+					api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+					api1.addEventListener(CouchDbEvent.COUCHDB_ACTIVE_TASKS, activeTasksEventHandler);
+					api1.getActiveTasks(); 
+				} else {
+//					api2 = new CouchDb(txtHostName2.text, new Number(txtPort2.text), txtUserName2.text, txtPassword2.text);
+//					api2.addEventListener(CouchDbEvent.COUCHDB_ACTIVE_TASKS, activeTasksEventHandler);
+//					api2.getActiveTasks(); 
+				}
+				
+			}
+			
+			public function activeTasksEventHandler(event:CouchDbEvent):void {
+				var host:String = event.currentTarget.host;
+				if (StringUtils.contains(txtHostName.text, host))
+					txtResult.text += "\nActive Tasks:\n"+event.result;
+//				else
+//					txtResult2.text += "\nActive Tasks:\n"+event.result;
+			}
+			
+			public function getDatabases(event:Event, panel:int) :void {
+				if (1== panel) {
+					api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+					api1.addEventListener(CouchDbEvent.COUCHDB_ALL_DBS, getDbEventHandler);
+					api1.getDatabases(); 
+				} else {
+//					api2 = new CouchDb(txtHostName2.text, new Number(txtPort2.text), txtUserName2.text, txtPassword2.text);
+//					api2.addEventListener(CouchDbEvent.COUCHDB_ALL_DBS, getDbEventHandler);
+//					api2.getDatabases(); 
+				}
+				
+			}
+			
+			public function getDbEventHandler(event:CouchDbEvent):void {
+				var host:String = event.currentTarget.host;
+				if (StringUtils.contains(txtHostName.text, host))
+					txtResult.text += "\Databases:\n"+event.result;
+//				else
+//					txtResult2.text += "\Databases:\n"+event.result;
+			}
+			
+			public function checkDatabaseExists(event:Event, panel:int) :void {
+				if (1== panel) {
+					api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+					api1.addEventListener(CouchDbEvent.COUCHDB_DB_EXIST, checkDbEventHandler);
+					api1.databaseExists(txtDatabase.text);
+				} else {
+//					api2 = new CouchDb(txtHostName2.text, new Number(txtPort2.text), txtUserName2.text, txtPassword2.text);
+//					api2.addEventListener(CouchDbEvent.COUCHDB_DB_EXIST, checkDbEventHandler);
+//					api2.databaseExists(txtDatabase2.text);
+				}
+				
+			}
+			
+			public function checkDbEventHandler(event:CouchDbEvent):void {
+				var host:String = event.currentTarget.host;
+				if (StringUtils.contains(txtHostName.text, host))
+					txtResult.text += "\Database Exists:"+event.result + "\n";
+//				else
+//					txtResult2.text += "\Databases Exists:"+event.result + "\n";
+			}
+			
+			protected function windowedapplication1_applicationCompleteHandler(event:FlexEvent):void
+			{
+
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:BorderContainer borderColor="black" width="100%" borderStyle="inset" borderWeight="4" height="100%">
+		<s:HGroup width="100%" height="100%">
+			
+			
+			
+			
+			<s:VGroup width="100%" height="100%">
+				
+				
+				<s:Form width="100%">
+					<s:FormItem label="Host Name">
+						<s:TextInput id="txtHostName" width="100%" text="https://usladha.cloudant.com"/>
+					</s:FormItem>
+					
+					<s:FormItem label="Port #">
+						<s:TextInput id="txtPort" text = "0"/>
+					</s:FormItem>
+					
+					<s:FormItem label="User Name">
+						<s:TextInput id="txtUserName" text="usladha"/>
+					</s:FormItem>
+					
+					<s:FormItem label="Password">
+						<s:TextInput id="txtPassword"  text="usladha"/>
+					</s:FormItem>
+					
+					<s:FormItem label="Database">
+						<s:TextInput id="txtDatabase"  text=""/>
+						<s:Button id="btnCheckDb" label="DB exists?" click="checkDatabaseExists(event, 1)"/>
+					</s:FormItem>
+					
+				</s:Form>
+				<s:Line width="100%">
+					<s:stroke>
+						<s:SolidColorStroke color="black" weight="2"/>
+					</s:stroke>
+				</s:Line>
+				<s:HGroup width="100%">
+					<s:Button id="btnVersion" label="Get Version" click="getVersion(event, 1)"/>
+					<s:Button id="btnActiveTasks" label="Active Tasks" click="getActiveTasks(event, 1)"/>	
+					<s:Button id="btnDatabases1" label="Databases" click="getDatabases(event, 1)"/>
+				</s:HGroup>
+				
+				<s:Line width="100%">
+					<s:stroke>
+						<s:SolidColorStroke color="black" weight="2"/>
+					</s:stroke>
+				</s:Line>
+				
+				
+				<s:Label text="Output"/>
+				<s:TextArea id="txtResult" width="100%" height="100%"/>
+				
+			</s:VGroup>
+			
+			<!--<s:Line height="100%">
+				<s:stroke>
+					<s:SolidColorStroke color="black" weight="2"/>
+				</s:stroke>
+			</s:Line>-->
+			
+			<!--<s:VGroup width="50%" height="100%" visible="false">
+				
+				
+				<s:Form width="100%">
+					<s:FormItem label="Host Name">
+						<s:TextInput id="txtHostName2" width="80%" text="http://usladha.iriscouch.com"/>
+					</s:FormItem>
+					
+					<s:FormItem label="Port #">
+						<s:TextInput id="txtPort2" text = "0"/>
+					</s:FormItem>
+					
+					<s:FormItem label="User Name">
+						<s:TextInput id="txtUserName2" text=""/>
+					</s:FormItem>
+					
+					<s:FormItem label="Password">
+						<s:TextInput id="txtPassword2"  text=""/>
+					</s:FormItem>
+					
+					<s:FormItem label="Database">
+						<s:TextInput id="txtDatabase2"  text=""/>
+						<s:Button id="btnCheckDb2" label="DB exists?" click="checkDatabaseExists(event, 2)"/>
+					</s:FormItem>
+					
+				</s:Form>
+				<s:Line width="100%">
+					<s:stroke>
+						<s:SolidColorStroke color="black" weight="2"/>
+					</s:stroke>
+				</s:Line>
+				
+				<s:HGroup width="100%">
+					<s:Button id="btnVersion2" label="Get Version" click="getVersion(event, 2)"/>
+					<s:Button id="btnActiveTasks2" label="Active Tasks" click="getActiveTasks(event, 2)"/>
+					<s:Button id="btnDatabases2" label="Databases" click="getDatabases(event, 2)"/>	
+				</s:HGroup>
+				
+				<s:Line width="100%">
+					<s:stroke>
+						<s:SolidColorStroke color="black" weight="2"/>
+					</s:stroke>
+				</s:Line>
+				
+				
+				<s:Label text="Output"/>
+				<s:TextArea id="txtResult2" width="100%"/>
+				
+			</s:VGroup>-->
+			
+			
+		</s:HGroup>
+		
+	</s:BorderContainer>
+</s:View>

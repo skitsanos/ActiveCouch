@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600">
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.utils.StringUtil;
+			import com.skitsanos.api.CouchDb;
+			import com.skitsanos.api.CouchDbEvent;
+			import com.skitsanos.api.StringUtils;
+			public var api:CouchDb;
+			
+			public function getVersion(event:Event) :void {
+				api = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+				api.addEventListener(CouchDbEvent.COUCHDB_VERSION, versionEventHandler);
+				api.version();
+			}
+			
+			public function versionEventHandler(event:CouchDbEvent):void {
+				txtResult.text += "\n"+event.result;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	
+	
+	<s:Form width="100%">
+		<s:FormItem label="Host Name">
+			<s:TextInput id="txtHostName" width="80%" text="https://usladha.cloudant.com"/>
+		</s:FormItem>
+		
+		<s:FormItem label="Port #">
+			<s:TextInput id="txtPort" text = "0"/>
+		</s:FormItem>
+		
+		<s:FormItem label="User Name">
+			<s:TextInput id="txtUserName" text="usladha"/>
+		</s:FormItem>
+		
+		<s:FormItem label="Password">
+			<s:TextInput id="txtPassword"  text="usladha"/>
+		</s:FormItem>
+		
+		<s:FormItem label="">
+			<s:Button id="btnVersion" label="Get Version" click="getVersion(event)"/>
+		</s:FormItem>
+		<s:TextArea id="txtResult" width="80%"/>
+	</s:Form>
+</s:Application>

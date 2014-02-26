@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<s:Module xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" implements="IModuleInterface">
+    <fx:Script>
+        import com.skitsanos.api.CouchDb;
+        import com.skitsanos.api.CouchDbEvent;
+
+        import spark.components.TextArea;
+
+        private var host:String;
+        private var port:Number;
+        private var user:String;
+        private var password:String;
+        private var result:TextArea;
+
+        public function getModuleTitle():String {
+            return "Filter Function";
+        }
+
+        public function setHost(host:String):void {
+            this.host = host;
+        }
+
+        public function setPort(port:String):void {
+            this.port = new Number(port);
+        }
+
+        public function setUser(user:String):void {
+            this.user = user;
+        }
+
+        public function setPassword(password:String):void {
+            this.password = password;
+        }
+
+        private function setfilterFunction(event:Event):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.FILTER_SET, function (event:CouchDbEvent):void {
+                result.appendText("\nSet filter Function - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.setFilterFunction(txtDb.text, txtDesignId.text, txtFilterFuncName.text, txtContent.text);
+        }
+
+        private function filterFunctionExists(event:Event):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.FILTER_EXIST, function (event:CouchDbEvent):void {
+                result.appendText("\nfilter Function Exists? - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.existsFilterFunction(txtDb.text, txtDesignId.text, txtFilterFuncName.text);
+        }
+
+        private function deletefilterFunction(event:Event):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.DELETE_FILTER, function (event:CouchDbEvent):void {
+                result.appendText("\nDelete filter Function - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.deleteFilterFunction(txtDb.text, txtDesignId.text, txtFilterFuncName.text);
+        }
+
+        public function setResultOutput(result:TextArea):void {
+            this.result = result;
+        }
+
+        private function getfilterFunction(event:MouseEvent):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.FILTER_GET, function (event:CouchDbEvent):void {
+                result.appendText("\nGet filter Function - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.getFilterFunction(txtDb.text, txtDesignId.text, txtFilterFuncName.text);
+        }
+
+    </fx:Script>
+
+    <s:BorderContainer width="100%" height="100%" borderVisible="false">
+        <s:Scroller left="0" right="0" top="0" bottom="0">
+            <s:Group width="100%" height="100%">
+                <s:layout>
+                    <s:VerticalLayout/>
+                </s:layout>
+                <s:Form>
+
+                    <s:FormItem label="Database">
+                        <s:TextInput id="txtDb" width="100%" text=""/>
+                    </s:FormItem>
+                    <s:FormItem label="Design ID">
+                        <s:TextInput id="txtDesignId" width="100%" text=""/>
+                    </s:FormItem>
+                    <s:FormItem label="Filter Function Name">
+                        <s:TextInput id="txtFilterFuncName" width="100%" text=""/>
+                    </s:FormItem>
+                    <s:FormItem label="Filter Function Content">
+                        <s:TextArea id="txtContent" width="100%" text=""/>
+                    </s:FormItem>
+                </s:Form>
+
+                <s:HGroup>
+                    <s:Button id="btnfilterFunctionExists" label="Filter Function Exists?"
+                              click="filterFunctionExists(event)"/>
+                    <s:Button id="btnGetFilterFunction" label="Get Filter Function" click="getfilterFunction(event)"/>
+                    <s:Button id="btnSetFilterFunction" label="Set Filter Function"
+                              click="setfilterFunction(event)"/>
+
+                    <s:Button id="btnDeleteFilterFunction" label="Delete Filter Function"
+                              click="deletefilterFunction(event)"/>
+                </s:HGroup>
+
+            </s:Group>
+        </s:Scroller>
+
+    </s:BorderContainer>
+</s:Module>

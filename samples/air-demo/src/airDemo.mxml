@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:s="library://ns.adobe.com/flex/spark"
+                       xmlns:mx="library://ns.adobe.com/flex/mx"
+                       width="100%" height="100%"
+                       title="ActionCouch AIR Demo">
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        s|WindowedApplication {
+
+            skinClass: ClassReference("spark.skins.spark.SparkChromeWindowedApplicationSkin");
+            background-color: #999999;
+            background-alpha: "0.7";
+        }
+    </fx:Style>
+    <fx:Script>
+        import mx.events.FlexEvent;
+        import mx.events.ModuleEvent;
+
+        import spark.components.NavigatorContent;
+
+        import spark.modules.ModuleLoader;
+
+        var dbModule:*;
+
+        private function addModule(event:Event):void {
+
+            var navigatorContent:NavigatorContent = new NavigatorContent();
+            navigatorContent.percentHeight = 100;
+            navigatorContent.percentWidth = 100;
+
+            var myLoader:ModuleLoader = new ModuleLoader();
+            myLoader.percentWidth = 100;
+            myLoader.percentHeight = 100;
+            myLoader.url = "dbModule.swf";
+            myLoader.creationPolicy = "all";
+            myLoader.addEventListener(ModuleEvent.READY, function(event:ModuleEvent):void {
+                var dbModule:IModuleInterface = myLoader.child as IModuleInterface;
+
+                if (null != dbModule) {
+                    dbModule.setHost("https://usladha.cloudant.com");
+                    dbModule.setPort("0");
+                    dbModule.setUser("usladha");
+                    dbModule.setPassword("usladha");
+                    navigatorContent.label = dbModule.getModuleTitle();
+                    mainVs.addChildAt(navigatorContent, mainVs.length-1);
+                }
+            });
+            navigatorContent.addElement(myLoader);
+
+
+        }
+
+        private function dbModuleLoader_readyHandler(event:ModuleEvent):void {
+            var dbModule:IModuleInterface = dbModuleLoader.child as IModuleInterface;
+            if (null != dbModule) {
+                dbModule.setHost("https://usladha.cloudant.com");
+                dbModule.setPort("0");
+                dbModule.setUser("usladha");
+                dbModule.setPassword("usladha");
+                tab1.label = dbModule.getModuleTitle();
+            }
+        }
+        private function dbModuleLoader2_readyHandler(event:ModuleEvent):void {
+            var dbModule:IModuleInterface = dbModuleLoader2.child as IModuleInterface;
+            if (null != dbModule) {
+                dbModule.setHost("http://usladha.iriscouch.com");
+                dbModule.setPort("0");
+                dbModule.setUser("");
+                dbModule.setPassword("");
+                tab2.label = dbModule.getModuleTitle();
+            }
+        }
+    </fx:Script>
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+
+    <s:BorderContainer width="100%" height="100%" borderColor="black" borderStyle="inset"
+                       borderWeight="4" layoutDirection="ltr">
+
+        <s:TabBar id="mainTabs" y="2" dataProvider="{mainVs}"/>
+        <mx:ViewStack id="mainVs" width="100%" height="100%" y="23" resizeToContent="true">
+            <s:NavigatorContent width="100%" height="100%" label="" id="tab1" creationPolicy="all">
+                <s:ModuleLoader url="dbModule.swf" width="100%" height="100%" id="dbModuleLoader" ready="dbModuleLoader_readyHandler(event)" />
+            </s:NavigatorContent>
+            <s:NavigatorContent width="100%" height="100%" label="" id="tab2" creationPolicy="all">
+                <s:ModuleLoader url="dbModule.swf" width="100%" height="100%" id="dbModuleLoader2" ready="dbModuleLoader2_readyHandler(event)" />
+            </s:NavigatorContent>
+            <!--<s:NavigatorContent label="+" show="addModule(event)"/>-->
+        </mx:ViewStack>
+    </s:BorderContainer>
+</s:WindowedApplication>

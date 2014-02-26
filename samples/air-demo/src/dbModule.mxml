@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Module xmlns:fx="http://ns.adobe.com/mxml/2009"
+          xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:mx="library://ns.adobe.com/flex/mx"
+          width="100%" height="100%" implements="IModuleInterface">
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        s|WindowedApplication {
+
+            skinClass: ClassReference("spark.skins.spark.SparkChromeWindowedApplicationSkin");
+            background-color: #999999;
+            background-alpha: "0.7";
+        }
+    </fx:Style>
+    <fx:Script>
+        //import com.demonsters.debugger.MonsterDebugger;
+
+        import com.hurlant.util.Base64;
+        import com.skitsanos.api.CouchDb;
+        import com.skitsanos.api.CouchDbEvent;
+        import com.skitsanos.api.StringUtils;
+        import com.skitsanos.api.ServerResponse;
+
+        import mx.events.FileEvent;
+
+        import mx.events.FlexEvent;
+        import mx.events.ModuleEvent;
+        import mx.utils.StringUtil;
+
+        import spark.components.TextArea;
+
+        public var api1:CouchDb;
+        public var api2:CouchDb;
+        public var hostName:String;
+        public var port:String;
+        public var user:String;
+        public var password:String;
+
+        public function getVersion(event:Event, panel:int):void {
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.VERSION, versionEventHandler);
+            api1.addEventListener(CouchDbEvent.ERROR, errorEventHandler);
+            api1.version();
+        }
+
+        public function errorEventHandler(event:Event):void {
+            txtResult.appendText("\nError - " + event.toString());
+        }
+
+        public function versionEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\nCouchdb Version - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function getActiveTasks(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.ACTIVE_TASKS, activeTasksEventHandler);
+            api1.addEventListener(CouchDbEvent.ERROR, errorEventHandler);
+            api1.getActiveTasks();
+
+        }
+
+        public function activeTasksEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\nActive Tasks:\n" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function getDatabases(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.ALL_DBS, getDbEventHandler);
+            api1.addEventListener(CouchDbEvent.ERROR, errorEventHandler);
+            api1.getDatabases();
+
+        }
+
+        public function getDbEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\nDatabases:\n" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function checkDatabaseExists(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.DB_EXIST, checkDbEventHandler);
+            api1.addEventListener(CouchDbEvent.ERROR, errorEventHandler);
+            api1.databaseExists(txtDatabase.text);
+
+        }
+
+        public function checkDbEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\nDatabase Exists:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function createDb(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.DB_CREATE, createDbEventHandler);
+            api1.addEventListener(CouchDbEvent.ERROR, errorEventHandler);
+            api1.createDatabase(txtDatabase.text);
+
+        }
+
+        public function createDbEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\nDatabase Create Status:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function deleteDb(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.DB_DELETE, deleteDbEventHandler);
+            api1.deleteDatabase(txtDatabase.text);
+
+        }
+
+        public function deleteDbEventHandler(event:CouchDbEvent):void {
+            txtResult.appendText("\nDatabase Delete Status:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function replicateDb(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.REPLICATE, replicateDbEventHandler);
+            var obj:Object = new Object();
+            obj.source = txtSource.text;
+            obj.target = txtTarget.text;
+            obj.continuous = chkContinuous.selected;
+            api1.replicate(obj);
+
+        }
+
+        public function replicateDbEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\nReplicate Status:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function getAllDocumentDetails(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.ALL_DOCS, getAllDocDetailsDbEventHandler);
+            api1.getAllDocuments(txtDocDb.text, txtDocid.text, new Number(txtLimit.text));
+
+        }
+
+        public function getAllDocDetailsDbEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\Document Details:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function getDocumentsCount(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.DOCUMENTS_COUNT, getAllDocDetailsDbEventHandler);
+            api1.countDocuments(txtDocDb.text);
+
+        }
+
+        public function docCountEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\Document Count:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function getDocumentExists(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.DOCUMENT_EXISTS, docExistEventHandler);
+            api1.documentExists(txtDocDb.text, txtDocid.text);
+
+        }
+
+        public function docExistEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\Document Exist:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function createDocument(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.CREATE_DOCUMENT, createDocEventHandler);
+            api1.createDocument(txtDocDb.text, txtContent.text);
+
+        }
+
+        public function createDocEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\Document Creation:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function updateDocument(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.UPDATE_DOCUMENT, updateDocEventHandler);
+            api1.updateDocument(txtDocDb.text, txtDocid.text, txtContent.text);
+
+        }
+
+        public function updateDocEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\Document Update:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function copyDocument(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.COPY_DOCUMENT, copyDocEventHandler);
+            api1.copyDocument(txtDocDb.text, txtDocid.text, txtNewDocid.text);
+
+        }
+
+        public function copyDocEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\Document Copy:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function deleteDocument(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.DELETE_DOCUMENT, deleteDocEventHandler);
+            api1.deleteDocument(txtDocDb.text, txtDocid.text);
+
+        }
+
+        public function deleteDocEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\Document Delete:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function deleteAllDocument(event:Event, panel:int):void {
+
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.BULK_DELETE_DOCUMENTS, deleteAllDocEventHandler);
+            api1.deleteDocuments(txtDocDb.text);
+
+        }
+
+        public function deleteAllDocEventHandler(event:CouchDbEvent):void {
+
+            txtResult.appendText("\Document Delete:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+
+        }
+
+        public function getDocument(event:Event):void {
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.GET_DOCUMENT, getDocEventHandler);
+            api1.getDocumentAsJson(txtDocDb.text, txtDocid.text);
+
+        }
+
+        public function getDocEventHandler(event:CouchDbEvent):void {
+            txtResult.appendText("\Get Document:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+        }
+
+        public function getAttachmentExists(event:Event):void {
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.ATTACHMENT_EXIST, function (event:CouchDbEvent):void {
+                txtResult.appendText("\Attachment Exists:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api1.existsAttachment(txtAttachmentDb.text, txtAttachmentDocid.text, txtAttachmentName.text);
+        }
+
+        private function getAttachment(event:MouseEvent):void {
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.ATTACHMENT_INLINE_GET, function (event:CouchDbEvent):void {
+                if (event.serverResponse.contentType == "text")
+                    txtResult.appendText("\Get Attachment:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+                else {
+                    var file:File = new File("C:\\" + txtAttachmentName.text);
+                    file.save(event.result, txtAttachmentName.text);
+                    txtResult.appendText("\Get Attachment: File saved at" + file.toString() + " ExecTime: " + event.serverResponse.execTime + "ms\n");
+                }
+
+            });
+            api1.getInlineAttachment(txtAttachmentDb.text, txtAttachmentDocid.text, txtAttachmentName.text);
+        }
+
+        private function getAttachmentInfo(event:MouseEvent):void {
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.ATTACHMENT_INLINE_INFO, function (event:CouchDbEvent):void {
+                txtResult.appendText("\Get Attachment:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api1.getInlineAttachmentInfo(txtAttachmentDb.text, txtAttachmentDocid.text, txtAttachmentName.text);
+        }
+
+        private function setAttachment(event:MouseEvent):void {
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.ATTACHMENT_INLINE_SET, function (event:CouchDbEvent):void {
+                txtResult.appendText("\Set Attachment:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            var file:File = new File(txtAttachmentFileName.text);
+            var fileStream:FileStream = new FileStream();
+            fileStream.open(file, FileMode.READ);
+            var fileData:ByteArray = new ByteArray();
+            fileStream.readBytes(fileData);
+            txtAttachmentName.text = file.name;
+            api1.setInlineAttachment(txtAttachmentDb.text, txtAttachmentDocid.text, file.name, txtAttachmentContentType.text, fileData);
+        }
+
+        private function deleteAttachment(event:MouseEvent):void {
+            api1 = new CouchDb(txtHostName.text, new Number(txtPort.text), txtUserName.text, txtPassword.text);
+            api1.addEventListener(CouchDbEvent.ATTACHMENT_INLINE_DELETE, function (event:CouchDbEvent):void {
+                txtResult.appendText("\Delete Attachment:" + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api1.deleteInlineAttachment(txtAttachmentDb.text, txtAttachmentDocid.text, txtAttachmentName.text);
+        }
+
+        protected function windowedapplication1_applicationCompleteHandler(event:FlexEvent):void {
+            // MonsterDebugger.initialize(this);
+        }
+
+        private function selectAttachment(event:MouseEvent):void {
+            var file:File = new File();
+            file.addEventListener(Event.SELECT, function (event:Event):void {
+                txtAttachmentFileName.text = file.nativePath;
+            })
+            file.browse();
+        }
+
+        private function txtHostName_valueCommitHandler(event:FlexEvent):void {
+            setHost(txtHostName.text);
+        }
+
+        public function getModuleTitle():String {
+            return hostName;
+        }
+
+        public function setHost(host:String):void {
+            for each (var module:IModuleInterface in modulesList) {
+                module.setHost(host);
+            }
+            hostName = host;
+        }
+
+        public function setPort(port:String):void {
+            for each (var module:IModuleInterface in modulesList) {
+                module.setPort(port);
+            }
+            this.port = port;
+        }
+
+        public function setUser(user:String):void {
+            for each (var module:IModuleInterface in modulesList) {
+                module.setUser(user);
+            }
+            this.user = user;
+        }
+
+        public function setPassword(password:String):void {
+            for each (var module:IModuleInterface in modulesList) {
+                module.setPassword(password);
+            }
+            this.password = password;
+        }
+
+        public function setResultOutput(result:TextArea):void {
+        }
+
+        private var modulesList:Array = new Array();
+
+        private function designDocLoader_readyHandler(event:ModuleEvent):void {
+            designDocModule = designDocLoader.child as IModuleInterface;
+            if (null != designDocModule) {
+                designNavigatorContent.label = designDocModule.getModuleTitle();
+            }
+            modulesList.push(designDocModule);
+            designDocModule.setHost(txtHostName.text);
+            designDocModule.setPort(txtPort.text);
+            designDocModule.setUser(txtUserName.text);
+            designDocModule.setPassword(txtPassword.text);
+            designDocModule.setResultOutput(txtResult);
+        }
+
+        private function showFuncLoader_readyHandler(event:ModuleEvent):void {
+            showFuncModule = showFuncDocLoader.child as IModuleInterface;
+            if (null != showFuncModule) {
+                showFuncNavigatorContent.label = showFuncModule.getModuleTitle();
+            }
+            modulesList.push(showFuncModule);
+            showFuncModule.setHost(txtHostName.text);
+            showFuncModule.setPort(txtPort.text);
+            showFuncModule.setUser(txtUserName.text);
+            showFuncModule.setPassword(txtPassword.text);
+            showFuncModule.setResultOutput(txtResult);
+        }
+
+        private function listFuncLoader_readyHandler(event:ModuleEvent):void {
+            listFuncModule = listFuncDocLoader.child as IModuleInterface;
+            if (null != listFuncModule) {
+                listFuncNavigatorContent.label = listFuncModule.getModuleTitle();
+            }
+            modulesList.push(listFuncModule);
+            listFuncModule.setHost(txtHostName.text);
+            listFuncModule.setPort(txtPort.text);
+            listFuncModule.setUser(txtUserName.text);
+            listFuncModule.setPassword(txtPassword.text);
+            listFuncModule.setResultOutput(txtResult);
+        }
+
+        private function viewFuncLoader_readyHandler(event:ModuleEvent):void {
+            viewFuncModule = viewFuncDocLoader.child as IModuleInterface;
+            if (null != viewFuncModule) {
+                viewFuncNavigatorContent.label = viewFuncModule.getModuleTitle();
+            }
+            modulesList.push(viewFuncModule);
+            viewFuncModule.setHost(txtHostName.text);
+            viewFuncModule.setPort(txtPort.text);
+            viewFuncModule.setUser(txtUserName.text);
+            viewFuncModule.setPassword(txtPassword.text);
+            viewFuncModule.setResultOutput(txtResult);
+        }
+
+        private function validateFuncLoader_readyHandler(event:ModuleEvent):void {
+            validateFuncModule = validateFuncDocLoader.child as IModuleInterface;
+            if (null != validateFuncModule) {
+                validateFuncNavigatorContent.label = validateFuncModule.getModuleTitle();
+            }
+            modulesList.push(validateFuncModule);
+            validateFuncModule.setHost(txtHostName.text);
+            validateFuncModule.setPort(txtPort.text);
+            validateFuncModule.setUser(txtUserName.text);
+            validateFuncModule.setPassword(txtPassword.text);
+            validateFuncModule.setResultOutput(txtResult);
+        }
+
+        private function rewriteFuncLoader_readyHandler(event:ModuleEvent):void {
+            rewriteFuncModule = rewriteFuncDocLoader.child as IModuleInterface;
+            if (null != rewriteFuncModule) {
+                rewriteFuncNavigatorContent.label = rewriteFuncModule.getModuleTitle();
+            }
+            modulesList.push(rewriteFuncModule);
+            rewriteFuncModule.setHost(txtHostName.text);
+            rewriteFuncModule.setPort(txtPort.text);
+            rewriteFuncModule.setUser(txtUserName.text);
+            rewriteFuncModule.setPassword(txtPassword.text);
+            rewriteFuncModule.setResultOutput(txtResult);
+        }
+
+        private function filterFuncLoader_readyHandler(event:ModuleEvent):void {
+            filterFuncModule = filterFuncDocLoader.child as IModuleInterface;
+            if (null != filterFuncModule) {
+                filterFuncNavigatorContent.label = filterFuncModule.getModuleTitle();
+            }
+            modulesList.push(filterFuncModule);
+            filterFuncModule.setHost(txtHostName.text);
+            filterFuncModule.setPort(txtPort.text);
+            filterFuncModule.setUser(txtUserName.text);
+            filterFuncModule.setPassword(txtPassword.text);
+            filterFuncModule.setResultOutput(txtResult);
+        }
+
+        private function userLoader_readyHandler(event:ModuleEvent):void {
+            userModule = userDocLoader.child as IModuleInterface;
+            if (null != userModule) {
+                userNavigatorContent.label = userModule.getModuleTitle();
+            }
+            modulesList.push(userModule);
+            userModule.setHost(txtHostName.text);
+            userModule.setPort(txtPort.text);
+            userModule.setUser(txtUserName.text);
+            userModule.setPassword(txtPassword.text);
+            userModule.setResultOutput(txtResult);
+        }
+
+        private function txtPort_valueCommitHandler(event:FlexEvent):void {
+            setPort(txtPort.text);
+        }
+
+        private function txtUserName_valueCommitHandler(event:FlexEvent):void {
+            setUser(txtUserName.text);
+        }
+
+        private function txtPassword_valueCommitHandler(event:FlexEvent):void {
+            setPassword(txtPassword.text);
+        }
+
+        private var designDocModule:IModuleInterface;
+        private var showFuncModule:IModuleInterface;
+        private var listFuncModule:IModuleInterface;
+        private var viewFuncModule:IModuleInterface;
+        private var validateFuncModule:IModuleInterface;
+        private var filterFuncModule:IModuleInterface;
+        private var rewriteFuncModule:IModuleInterface;
+        private var userModule:IModuleInterface;
+
+    </fx:Script>
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+    <s:Scroller left="0" right="0" top="0" bottom="0">
+    <s:Group width="100%" height="100%">
+    <s:layout>
+        <s:VerticalLayout/>
+    </s:layout>
+
+
+        <!--<s:Line width="100%">-->
+        <!--<s:stroke>-->
+        <!--<s:SolidColorStroke color="black" weight="2"/>-->
+        <!--</s:stroke>-->
+        <!--</s:Line>-->
+
+        <s:TabBar id="tabs" y="2" dataProvider="{vs}"/>
+        <mx:ViewStack id="vs" width="100%" height="100%" y="23" resizeToContent="true">
+            <s:NavigatorContent label="Host Configuration" width="100%">
+                <s:BorderContainer width="100%" borderVisible="false">
+
+                    <s:Form width="100%" height="100%">
+
+
+                        <s:FormItem label="Host Name">
+                            <s:TextInput id="txtHostName" text="{hostName}"
+                                         valueCommit="txtHostName_valueCommitHandler(event)"/>
+                        </s:FormItem>
+
+                        <s:FormItem label="Port #">
+                            <s:TextInput id="txtPort" text="{port}" valueCommit="txtPort_valueCommitHandler(event)"/>
+                        </s:FormItem>
+
+                        <s:FormItem label="User Name">
+                            <s:TextInput id="txtUserName" text="{user}" valueCommit="txtUserName_valueCommitHandler(event)"/>
+                        </s:FormItem>
+
+                        <s:FormItem label="Password">
+                            <s:TextInput id="txtPassword" text="{password}" valueCommit="txtPassword_valueCommitHandler(event)"/>
+                        </s:FormItem>
+
+                    </s:Form>
+                </s:BorderContainer>
+            </s:NavigatorContent>
+            <s:NavigatorContent label="CouchDb Details" width="100%">
+
+
+                <s:Group width="100%" height="100%">
+                    <s:layout>
+                        <s:TileLayout horizontalGap="10"/>
+                    </s:layout>
+                    <s:Button id="btnVersion" label="Get Version" click="getVersion(event, 1)"
+                              top="10"/>
+                    <s:Button id="btnActiveTasks" label="Active Tasks" click="getActiveTasks(event, 1)"
+                              top="10"/>
+                    <s:Button id="btnDatabases" label="Databases" click="getDatabases(event, 1)"
+                              top="10"/>
+                </s:Group>
+
+            </s:NavigatorContent>
+            <s:NavigatorContent label="Database Details" height="100%">
+                <s:Form>
+                    <s:FormItem label="Database">
+                        <s:layout>
+                            <s:HorizontalLayout/>
+                        </s:layout>
+                        <s:TextInput id="txtDatabase" text=""/>
+                        <s:Button id="btnCheckDb" label="DB exists?"
+                                  click="checkDatabaseExists(event, 1)"/>
+                        <s:Button id="btnCreateDb" label="Create DB" click="createDb(event, 1)"/>
+                        <s:Button id="btnDeleteDb" label="Delete DB" click="deleteDb(event, 1)"/>
+
+                    </s:FormItem>
+                </s:Form>
+            </s:NavigatorContent>
+            <s:NavigatorContent label="Replicate" height="100%">
+
+                <s:Form>
+                    <s:FormItem label="Source">
+                        <s:TextInput id="txtSource" width="100%" text=""/>
+                    </s:FormItem>
+                    <s:FormItem label="Target">
+                        <s:TextInput id="txtTarget" width="100%" text=""/>
+                    </s:FormItem>
+                    <s:FormItem>
+                        <s:CheckBox id="chkContinuous" label="Continuous?"/>
+                    </s:FormItem>
+                    <s:FormItem>
+                        <s:Button id="btnReplicate" label="Replicate" click="replicateDb(event, 1)"/>
+                    </s:FormItem>
+                </s:Form>
+
+            </s:NavigatorContent>
+            <s:NavigatorContent label="Document Details" height="100%" width="100%">
+                <s:BorderContainer width="100%" borderVisible="false">
+                    <s:layout>
+                        <s:VerticalLayout/>
+                    </s:layout>
+                    <s:Form>
+                        <s:layout>
+                            <s:HorizontalLayout/>
+                        </s:layout>
+
+
+                        <s:FormItem label="Database">
+                            <s:TextInput id="txtDocDb" width="100%" text=""/>
+                        </s:FormItem>
+                        <s:FormItem label="DocId">
+                            <s:TextInput id="txtDocid" width="100%" text=""/>
+                        </s:FormItem>
+                        <s:FormItem label="Limit">
+                            <s:TextInput id="txtLimit" width="100%" text="" restrict="0-9"/>
+                        </s:FormItem>
+                        <s:FormItem label="New DocId">
+                            <s:TextInput id="txtNewDocid" width="100%" text=""/>
+                        </s:FormItem>
+                    </s:Form>
+
+                    <s:HGroup>
+                        <s:Button id="btnGetAllDocumentDetails" label="All Document Details"
+                                  click="getAllDocumentDetails(event, 1)"/>
+                        <s:Button id="btnCountDocuments" label="Document Count"
+                                  click="getDocumentsCount(event, 1)"/>
+                        <s:Button id="btnDocumentExists" label="Document Exists?"
+                                  click="getDocumentExists(event, 1)"/>
+                    </s:HGroup>
+
+                    <s:Form width="100%">
+                        <s:FormItem label="Content">
+                            <s:TextArea id="txtContent" width="100%" text="" horizontalScrollPolicy="auto"
+                                        verticalScrollPolicy="auto"/>
+
+                        </s:FormItem>
+                    </s:Form>
+
+                    <s:HGroup>
+                        <s:Button id="btnGetDocument" label="Get Document"
+                                  click="getDocument(event)"/>
+                        <s:Button id="btnCreateDocument" label="Create Document"
+                                  click="createDocument(event, 1)"/>
+                        <s:Button id="btnUpdateDocument" label="Update Document"
+                                  click="updateDocument(event, 1)"/>
+                        <s:Button id="btnCopyDocument" label="Copy Document"
+                                  click="copyDocument(event, 1)"/>
+                        <s:Button id="btnDeleteDocument" label="Delete Document"
+                                  click="deleteDocument(event, 1)"/>
+                        <s:Button id="btnDeleteallDocument" label="Delete All Documents"
+                                  click="deleteAllDocument(event, 1)"/>
+                    </s:HGroup>
+                </s:BorderContainer>
+
+            </s:NavigatorContent>
+
+            <s:NavigatorContent label="Attachments" height="100%" width="100%">
+                <s:BorderContainer width="100%" borderVisible="false">
+                    <s:layout>
+                        <s:VerticalLayout/>
+                    </s:layout>
+                    <s:Form>
+                        <s:layout>
+                            <s:HorizontalLayout/>
+                        </s:layout>
+
+
+                        <s:FormItem label="Database">
+                            <s:TextInput id="txtAttachmentDb" width="100%" text=""/>
+                        </s:FormItem>
+                        <s:FormItem label="DocId">
+                            <s:TextInput id="txtAttachmentDocid" width="100%" text=""/>
+                        </s:FormItem>
+                        <s:FormItem label="Attachment Name">
+                            <s:TextInput id="txtAttachmentName" width="100%" text=""/>
+                        </s:FormItem>
+                        <s:FormItem label="Attachment Content Type">
+                            <s:TextInput id="txtAttachmentContentType" width="100%" text=""/>
+                        </s:FormItem>
+                        <s:FormItem label="Select Attachment">
+                            <s:TextInput id="txtAttachmentFileName" width="100%" text=""/>
+                            <s:Button id="btnSelectAttachment" click="selectAttachment(event)"
+                                      label="Select"/>
+                        </s:FormItem>
+                    </s:Form>
+
+                    <s:HGroup>
+                        <s:Button id="btnAttachmentExists" label="Attachment Exists?"
+                                  click="getAttachmentExists(event)"/>
+                        <s:Button id="btnGetAttachment" label="Get Attachment"
+                                  click="getAttachment(event)"/>
+                        <s:Button id="btnGetAttachmentInfo" label="Get Attachment Info"
+                                  click="getAttachmentInfo(event)"/>
+                        <s:Button id="btnSetAttachment" label="Set Attachment"
+                                  click="setAttachment(event)"/>
+                        <s:Button id="btnDeleteAttachment" label="Delete Attachment"
+                                  click="deleteAttachment(event)"/>
+                    </s:HGroup>
+
+                </s:BorderContainer>
+
+            </s:NavigatorContent>
+
+            <s:NavigatorContent label="" height="100%" width="100%" id="designNavigatorContent" >
+                <s:ModuleLoader url="designDoc.swf" width="100%" height="100%" id="designDocLoader"
+                                ready="designDocLoader_readyHandler(event)"/>
+            </s:NavigatorContent>
+
+            <s:NavigatorContent label="" height="100%" width="100%" id="showFuncNavigatorContent">
+                <s:ModuleLoader url="showFunction.swf" width="100%" height="100%" id="showFuncDocLoader"
+                                ready="showFuncLoader_readyHandler(event)"/>
+            </s:NavigatorContent>
+            <s:NavigatorContent label="" height="100%" width="100%" id="listFuncNavigatorContent">
+                <s:ModuleLoader url="listFunction.swf" width="100%" height="100%" id="listFuncDocLoader"
+                                ready="listFuncLoader_readyHandler(event)"/>
+            </s:NavigatorContent>
+            <s:NavigatorContent label="" height="100%" width="100%" id="viewFuncNavigatorContent">
+                <s:ModuleLoader url="viewFunction.swf" width="100%" height="100%" id="viewFuncDocLoader"
+                                ready="viewFuncLoader_readyHandler(event)"/>
+            </s:NavigatorContent>
+            <s:NavigatorContent label="" height="100%" width="100%" id="validateFuncNavigatorContent">
+                <s:ModuleLoader url="validateFunction.swf" width="100%" height="100%" id="validateFuncDocLoader"
+                                ready="validateFuncLoader_readyHandler(event)"/>
+            </s:NavigatorContent>
+            <s:NavigatorContent label="" height="100%" width="100%" id="rewriteFuncNavigatorContent">
+                <s:ModuleLoader url="rewriteFunction.swf" width="100%" height="100%" id="rewriteFuncDocLoader"
+                                ready="rewriteFuncLoader_readyHandler(event)"/>
+            </s:NavigatorContent>
+            <s:NavigatorContent label="" height="100%" width="100%" id="filterFuncNavigatorContent">
+                <s:ModuleLoader url="filterFunction.swf" width="100%" height="100%" id="filterFuncDocLoader"
+                                ready="filterFuncLoader_readyHandler(event)"/>
+            </s:NavigatorContent>
+            <s:NavigatorContent label="" height="100%" width="100%" id="userNavigatorContent" creationPolicy="all">
+                <s:ModuleLoader url="userModule.swf" width="100%" height="100%" id="userDocLoader"
+                                ready="userLoader_readyHandler(event)"/>
+            </s:NavigatorContent>
+        </mx:ViewStack>
+
+        <s:Line width="100%">
+            <s:stroke>
+                <s:SolidColorStroke color="black" weight="2"/>
+            </s:stroke>
+        </s:Line>
+
+        <s:BorderContainer width="100%" height="25%">
+            <s:Label text="Output"/>
+            <s:TextArea id="txtResult" width="100%" height="100%" borderColor="gray" editable="false"/>
+        </s:BorderContainer>
+
+    </s:Group>
+
+    <!--<s:Line height="100%">-->
+    <!--<s:stroke>-->
+    <!--<s:SolidColorStroke color="black" weight="2"/>-->
+    <!--</s:stroke>-->
+    <!--</s:Line>-->
+
+  </s:Scroller>
+</s:Module>

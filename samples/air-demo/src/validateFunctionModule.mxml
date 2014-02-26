@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<s:Module xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" implements="IModuleInterface">
+    <fx:Script>
+        import com.skitsanos.api.CouchDb;
+        import com.skitsanos.api.CouchDbEvent;
+
+        import spark.components.TextArea;
+
+        private var host:String;
+        private var port:Number;
+        private var user:String;
+        private var password:String;
+        private var result:TextArea;
+
+        public function getModuleTitle():String {
+            return "Validate Function";
+        }
+
+        public function setHost(host:String):void {
+            this.host = host;
+        }
+
+        public function setPort(port:String):void {
+            this.port = new Number(port);
+        }
+
+        public function setUser(user:String):void {
+            this.user = user;
+        }
+
+        public function setPassword(password:String):void {
+            this.password = password;
+        }
+
+        private function setValidateFunction(event:Event):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.VALIDATE_SET, function (event:CouchDbEvent):void {
+                result.appendText("\nSet Validate Function - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.setValidateFunction(txtDb.text, txtDesignId.text, txtContent.text);
+        }
+
+        private function ValidateFunctionExists(event:Event):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.VALIDATE_EXIST, function (event:CouchDbEvent):void {
+                result.appendText("\nValidate Function Exists? - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.existsValidateFunction(txtDb.text, txtDesignId.text);
+        }
+
+        private function deleteValidateFunction(event:Event):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.DELETE_VALIDATE, function (event:CouchDbEvent):void {
+                result.appendText("\nDelete Validate Function - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.deleteValidateFunction(txtDb.text, txtDesignId.text);
+        }
+
+        public function setResultOutput(result:TextArea):void {
+            this.result = result;
+        }
+
+        private function getValidateFunction(event:MouseEvent):void {
+            var api:CouchDb = new CouchDb(host, port, user, password);
+            api.addEventListener(CouchDbEvent.VALIDATE_GET, function (event:CouchDbEvent):void {
+                result.appendText("\nGet Validate Function - " + event.result + "ExecTime: " + event.serverResponse.execTime + "ms\n");
+            });
+            api.getValidateFunction(txtDb.text, txtDesignId.text);
+        }
+
+    </fx:Script>
+
+    <s:BorderContainer width="100%" height="100%" borderVisible="false">
+        <s:Scroller left="0" right="0" top="0" bottom="0">
+        <s:Group width="100%" height="100%">
+        <s:layout>
+            <s:VerticalLayout/>
+        </s:layout>
+        <s:Form>
+
+            <s:FormItem label="Database">
+                <s:TextInput id="txtDb" width="100%" text=""/>
+            </s:FormItem>
+            <s:FormItem label="Design ID">
+                <s:TextInput id="txtDesignId" width="100%" text=""/>
+            </s:FormItem>
+            <s:FormItem label="Validate Function Content">
+                <s:TextArea id="txtContent" width="100%" text=""/>
+            </s:FormItem>
+        </s:Form>
+
+        <s:HGroup>
+            <s:Button id="btnValidateFunctionExists" label="Validate Function Exists?"
+                      click="ValidateFunctionExists(event)"/>
+            <s:Button id="btnGetValidateFunction" label="Get Validate Function" click="getValidateFunction(event)"/>
+            <s:Button id="btnSetValidateFunction" label="Set Validate Function"
+                      click="setValidateFunction(event)"/>
+
+            <s:Button id="btnDeleteValidateFunction" label="Delete Validate Function"
+                      click="deleteValidateFunction(event)"/>
+        </s:HGroup>
+
+        </s:Group>
+        </s:Scroller>
+
+    </s:BorderContainer>
+</s:Module>
